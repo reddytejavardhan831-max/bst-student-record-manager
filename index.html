@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BST Student Record Manager</title>
+<style>
+/* ============ CSS ============ */
+:root{--bg:#f3f5fa;--card:#fff;--ink:#1b2236;--mute:#667089;--line:#dde2ee;--pri:#3b5bdb;--pri2:#e7ecff;--ok:#1f9d63;--warn:#e8890c;--bad:#d6334a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1424;--card:#171e33;--ink:#e8ecf8;--mute:#8d97b5;--line:#283150;--pri:#7c93ff;--pri2:#222c52;--ok:#3ccf8e;--warn:#f5a43a;--bad:#ff6b81}}
+:root[data-theme="dark"]{--bg:#0f1424;--card:#171e33;--ink:#e8ecf8;--mute:#8d97b5;--line:#283150;--pri:#7c93ff;--pri2:#222c52;--ok:#3ccf8e;--warn:#f5a43a;--bad:#ff6b81}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:22px 20px 0;max-width:1180px;margin:auto;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+h1{margin:0;font-size:1.7rem;letter-spacing:-.02em}header p{margin:2px 0 0;color:var(--mute)}
+h2{margin:0 0 12px;font-size:1.1rem}h3{margin:14px 0 6px;font-size:.95rem}
+nav{max-width:1180px;margin:16px auto 0;padding:0 20px;display:flex;gap:6px;overflow-x:auto}
+nav button{border:0;background:transparent;color:var(--mute);padding:10px 16px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap;transition:.2s}
+nav button.on{background:var(--pri);color:#fff}nav button:hover:not(.on){background:var(--pri2);color:var(--pri)}
+main{max-width:1180px;margin:auto;padding:16px 20px 40px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,30,60,.06)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.stat small{color:var(--mute)}.stat b{display:block;font-size:1.7rem;letter-spacing:-.02em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+label{display:block;font-size:.82rem;font-weight:600;color:var(--mute);margin-bottom:3px}
+input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus,button:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}.row>div{flex:1;min-width:160px}
+.btn{border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--pri);color:#fff;transition:transform .15s,opacity .15s}
+.btn:hover{opacity:.9}.btn:active{transform:scale(.97)}
+.btn.sec{background:var(--pri2);color:var(--pri)}.btn.bad{background:var(--bad)}.btn.sm{padding:5px 10px;font-size:.8rem}
+.out{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--pri2);display:none}.out.show{display:block}
+.out.err{background:color-mix(in srgb,var(--bad) 15%,transparent)}
+.path{font-weight:700;font-size:1.05rem;word-break:break-word}
+.tree{overflow:auto;border:1px dashed var(--line);border-radius:12px;min-height:200px;background:var(--bg)}
+.tree svg{display:block;margin:auto}
+.tree .empty{padding:60px 16px;text-align:center;color:var(--mute)}
+.edge{stroke:var(--mute);stroke-width:2;opacity:.6;transition:.3s}.edge.hot{stroke:var(--warn);opacity:1;stroke-width:3}
+.node circle{fill:var(--card);stroke:var(--pri);stroke-width:2.5;transition:.3s}
+.node text{fill:var(--ink);font-weight:700;font-size:13px;text-anchor:middle}
+.node .nm{font-weight:400;font-size:10px;fill:var(--mute)}
+.node{animation:pop .5s}
+.node.new circle{fill:var(--ok);stroke:var(--ok);animation:pulse 1s 2}.node.new text:not(.nm){fill:#fff}
+.node.path circle{fill:var(--warn);stroke:var(--warn)}.node.path text:not(.nm){fill:#fff}
+.node.found circle{fill:var(--pri);stroke:var(--pri);animation:pulse 1s 2}.node.found text:not(.nm){fill:#fff}
+.node.del circle{fill:var(--bad);stroke:var(--bad);animation:pulse .5s 2}.node.del text:not(.nm){fill:#fff}
+@keyframes pop{from{opacity:0;transform:scale(.6)}}
+@keyframes pulse{50%{stroke-width:8;stroke-opacity:.4}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--mute);margin-top:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mute);font-size:.8rem}
+td .btn{margin-right:4px}
+.cmp td:nth-child(n+2),.cmp th:nth-child(n+2){font-family:ui-monospace,Menlo,monospace}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.two{grid-template-columns:1fr}h1{font-size:1.35rem}}
+.info{font-size:.88rem;color:var(--mute);margin:4px 0}.info b{color:var(--ink)}
+code{background:var(--pri2);color:var(--pri);padding:1px 6px;border-radius:6px}
+#toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:9}
+.toast{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;border-left:5px solid var(--ok);animation:pop .3s;max-width:300px}
+.toast.err{border-color:var(--bad)}.toast.warn{border-color:var(--warn)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🌳 BST Student Record Manager</h1><p>Manage student records using Binary Search Tree</p></div>
+  <button class="btn sec" id="theme" aria-label="Toggle dark or light theme">🌓 Theme</button>
+</header>
+<nav id="nav">
+  <button class="on" data-t="dash">📊 Dashboard</button>
+  <button data-t="add">➕ Add Student</button>
+  <button data-t="search">🔍 Search</button>
+  <button data-t="del">🗑️ Delete</button>
+  <button data-t="viz">🌲 Tree Visualization</button>
+</nav>
+<main>
+
+<!-- DASHBOARD -->
+<section class="tab on" id="dash">
+  <div class="stats">
+    <div class="stat"><small>Total Students</small><b id="sTotal">0</b></div>
+    <div class="stat"><small>Root Node</small><b id="sRoot">–</b></div>
+    <div class="stat"><small>Minimum ID</small><b id="sMin">–</b></div>
+    <div class="stat"><small>Maximum ID</small><b id="sMax">–</b></div>
+    <div class="stat"><small>Tree Height</small><b id="sHeight">0</b></div>
+  </div>
+  <div class="card"><h2>Current tree</h2><div class="tree treeview"></div></div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Student records</h2>
+      <div class="row"><button class="btn sec sm" id="bSample">Generate sample data</button><button class="btn sec sm" id="bReset">Reset tree</button><button class="btn bad sm" id="bClear">Clear all</button></div></div>
+    <div class="tw"><table><thead><tr><th>Student ID</th><th>Name</th><th>Age</th><th>Course</th><th>Department</th><th>Email</th><th>CGPA</th><th>Actions</th></tr></thead><tbody id="tbody"></tbody></table></div>
+  </div>
+</section>
+
+<!-- ADD -->
+<section class="tab" id="add">
+  <div class="card"><h2>Add a student</h2>
+    <div class="grid">
+      <div><label for="fId">Student ID / Roll Number</label><input id="fId" type="number" min="1" placeholder="e.g. 45"></div>
+      <div><label for="fName">Student Name</label><input id="fName" placeholder="Full name"></div>
+      <div><label for="fAge">Age</label><input id="fAge" type="number" placeholder="15–100"></div>
+      <div><label for="fCourse">Course</label><input id="fCourse" placeholder="e.g. B.Tech"></div>
+      <div><label for="fDept">Department</label><input id="fDept" placeholder="e.g. Computer Science"></div>
+      <div><label for="fEmail">Email</label><input id="fEmail" type="email" placeholder="name@college.edu"></div>
+      <div><label for="fCgpa">CGPA</label><input id="fCgpa" type="number" step="0.01" placeholder="0 – 10"></div>
+    </div>
+    <p class="out err" id="addErr"></p>
+    <div style="margin-top:14px"><button class="btn" id="bInsert">Insert Student</button></div>
+  </div>
+  <div class="card"><h2>Tree after insert</h2><div class="tree treeview"></div></div>
+</section>
+
+<!-- SEARCH -->
+<section class="tab" id="search">
+  <div class="card"><h2>Search by Student ID</h2>
+    <div class="row"><div><label for="sId">Student ID</label><input id="sId" type="number" placeholder="e.g. 35"></div><button class="btn" id="bSearch">Search</button></div>
+    <div class="out" id="sOut"></div>
+  </div>
+  <div class="card"><h2>Search path</h2><div class="tree treeview"></div>
+    <div class="legend"><span><i style="background:var(--warn)"></i>Visited</span><span><i style="background:var(--pri)"></i>Found</span></div></div>
+</section>
+
+<!-- DELETE -->
+<section class="tab" id="del">
+  <div class="card"><h2>Delete by Student ID</h2>
+    <div class="row"><div><label for="dId">Student ID</label><input id="dId" type="number" placeholder="e.g. 30"></div><button class="btn bad" id="bDelete">Delete Student</button></div>
+    <div class="out" id="dOut"></div>
+    <p class="info">Handles all three cases: <b>leaf</b>, <b>one child</b>, <b>two children</b> (replaced by inorder successor).</p>
+  </div>
+  <div class="card"><h2>Tree after delete</h2><div class="tree treeview"></div></div>
+</section>
+
+<!-- VIZ -->
+<section class="tab" id="viz">
+  <div class="card"><h2>Tree visualization</h2><div class="tree treeview"></div>
+    <div class="legend"><span><i style="background:var(--card);border:2px solid var(--pri)"></i>Normal</span><span><i style="background:var(--ok)"></i>Newly inserted</span><span><i style="background:var(--warn)"></i>Search path</span><span><i style="background:var(--pri)"></i>Searched</span><span><i style="background:var(--bad)"></i>Deleted</span></div></div>
+  <div class="card"><h2>Traversals</h2>
+    <div class="row"><button class="btn sec" data-trav="inorder">Inorder</button><button class="btn sec" data-trav="preorder">Preorder</button><button class="btn sec" data-trav="postorder">Postorder</button><button class="btn sec" data-trav="levelOrder">Level Order</button></div>
+    <div class="out" id="tOut"></div>
+    <p class="info"><b>Inorder</b> (left, root, right) gives Student IDs in sorted order. <b>Preorder</b> visits the root before its children. <b>Postorder</b> visits children before the root. <b>Level order</b> visits nodes level by level.</p>
+  </div>
+  <div class="two">
+    <div class="card"><h2>What is a Binary Search Tree?</h2>
+      <p class="info">A tree where each node has at most two children, and:</p>
+      <p class="info">• Values <b>smaller</b> than a node go on the <b>left</b>.<br>• Values <b>greater</b> go on the <b>right</b>.<br>• Each <b>Student ID</b> is the key that organizes records.</p>
+      <svg viewBox="0 0 300 150" width="100%" style="max-width:320px;display:block;margin:auto" aria-label="Example BST with root 50">
+        <g stroke="var(--mute)" stroke-width="2"><line x1="150" y1="25" x2="80" y2="75"/><line x1="150" y1="25" x2="220" y2="75"/><line x1="80" y1="75" x2="40" y2="125"/><line x1="80" y1="75" x2="120" y2="125"/><line x1="220" y1="75" x2="180" y2="125"/><line x1="220" y1="75" x2="260" y2="125"/></g>
+        <g fill="var(--card)" stroke="var(--pri)" stroke-width="2.5"><circle cx="150" cy="25" r="18"/><circle cx="80" cy="75" r="18"/><circle cx="220" cy="75" r="18"/><circle cx="40" cy="125" r="18"/><circle cx="120" cy="125" r="18"/><circle cx="180" cy="125" r="18"/><circle cx="260" cy="125" r="18"/></g>
+        <g fill="var(--ink)" font-size="13" font-weight="700" text-anchor="middle"><text x="150" y="30">50</text><text x="80" y="80">30</text><text x="220" y="80">70</text><text x="40" y="130">20</text><text x="120" y="130">40</text><text x="180" y="130">60</text><text x="260" y="130">80</text></g></svg>
+    </div>
+    <div class="card"><h2>Algorithm complexity</h2>
+      <div class="tw"><table class="cmp"><thead><tr><th>Operation</th><th>Average</th><th>Worst</th></tr></thead><tbody>
+        <tr><td>Search</td><td>O(log n)</td><td>O(n)</td></tr><tr><td>Insert</td><td>O(log n)</td><td>O(n)</td></tr><tr><td>Delete</td><td>O(log n)</td><td>O(n)</td></tr></tbody></table></div>
+      <p class="info">The worst case happens when the tree becomes unbalanced. Inserting IDs in sorted order (1, 2, 3, …) turns the tree into a linked list. Try it with the Add tab.</p>
+    </div>
+  </div>
+</section>
+</main>
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+/* ============ JAVASCRIPT: BST ============ */
+class Node {                       // one student record stored in a BST node
+  constructor(s){ this.id=s.id; this.data=s; this.left=null; this.right=null; }
+}
+class BST {
+  constructor(){ this.root=null; this.size=0; }
+  insert(s){                       // returns false if the ID already exists
+    const n=new Node(s);
+    if(!this.root){ this.root=n; this.size++; return true; }
+    let c=this.root;
+    while(true){
+      if(s.id===c.id) return false;
+      const side=s.id<c.id?'left':'right';
+      if(!c[side]){ c[side]=n; this.size++; return true; }
+      c=c[side];
+    }
+  }
+  search(id){                      // returns {node, path, steps}
+    let c=this.root, path=[];
+    while(c){ path.push(c.id); if(id===c.id) return {node:c,path,steps:path.length};
+      c = id<c.id ? c.left : c.right; }
+    return {node:null,path,steps:path.length};
+  }
+  delete(id){                      // returns {ok, type}
+    const res={ok:false,type:''};
+    const rec=(n,id)=>{
+      if(!n) return null;
+      if(id<n.id){ n.left=rec(n.left,id); return n; }
+      if(id>n.id){ n.right=rec(n.right,id); return n; }
+      res.ok=true;
+      if(!n.left&&!n.right){ res.type='leaf node'; return null; }
+      if(!n.left){ res.type='node with one child'; return n.right; }
+      if(!n.right){ res.type='node with one child'; return n.left; }
+      res.type='node with two children (replaced by inorder successor)';
+      let s=n.right; while(s.left) s=s.left;       // smallest in right subtree
+      n.id=s.id; n.data=s.data;
+      n.right=rec(n.right,s.id); return n;
+    };
+    this.root=rec(this.root,id);
+    if(res.ok) this.size--;
+    return res;
+  }
+  inorder(n=this.root,o=[]){ if(n){ this.inorder(n.left,o); o.push(n.id); this.inorder(n.right,o);} return o; }
+  preorder(n=this.root,o=[]){ if(n){ o.push(n.id); this.preorder(n.left,o); this.preorder(n.right,o);} return o; }
+  postorder(n=this.root,o=[]){ if(n){ this.postorder(n.left,o); this.postorder(n.right,o); o.push(n.id);} return o; }
+  levelOrder(){ const o=[],q=this.root?[this.root]:[]; while(q.length){ const n=q.shift(); o.push(n.id); n.left&&q.push(n.left); n.right&&q.push(n.right);} return o; }
+  height(n=this.root){ return n?1+Math.max(this.height(n.left),this.height(n.right)):0; }
+  minimum(){ let c=this.root; while(c&&c.left) c=c.left; return c; }
+  maximum(){ let c=this.root; while(c&&c.right) c=c.right; return c; }
+}
+
+/* ============ JAVASCRIPT: APP ============ */
+const SAMPLE=[
+ [50,'Aarav Sharma',20,'B.Tech','Computer Science','aarav@college.edu',8.7],
+ [30,'Priya Nair',19,'B.Tech','Information Technology','priya@college.edu',9.1],
+ [70,'Rohan Mehta',21,'B.Tech','Electronics','rohan@college.edu',7.8],
+ [20,'Sneha Iyer',18,'B.Sc','Mathematics','sneha@college.edu',8.4],
+ [40,'Kabir Singh',20,'B.Tech','Mechanical','kabir@college.edu',7.2],
+ [60,'Ananya Rao',19,'B.Sc','Physics','ananya@college.edu',9.4],
+ [80,'Vikram Desai',22,'MCA','Computer Applications','vikram@college.edu',8.0]
+].map(a=>({id:a[0],name:a[1],age:a[2],course:a[3],dept:a[4],email:a[5],cgpa:a[6]}));
+
+let tree=new BST(), marks={}, timers=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function loadSample(){ tree=new BST(); SAMPLE.forEach(s=>tree.insert({...s})); marks={}; render(); }
+
+function toast(msg,type=''){
+  const t=document.createElement('div'); t.className='toast '+type; t.textContent=msg;
+  $('toasts').appendChild(t); setTimeout(()=>t.remove(),3200);
+}
+function later(fn,ms){ timers.push(setTimeout(fn,ms)); }
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+
+/* ---- drawing ---- */
+function layout(){                 // x from inorder position, y from depth
+  const pos=new Map(); let i=0;
+  const walk=(n,d)=>{ if(!n) return; walk(n.left,d+1); pos.set(n,{x:40+i*62,y:36+d*74}); i++; walk(n.right,d+1); };
+  walk(tree.root,0); return pos;
+}
+function drawTree(){
+  if(!tree.root) return '<div class="empty">🌱 The tree is empty.<br>Add a student or generate sample data to begin.</div>';
+  const pos=layout(), w=tree.size*62+20, h=tree.height()*74+10;
+  let edges='',nodes='';
+  pos.forEach((p,n)=>{
+    [n.left,n.right].forEach(c=>{ if(c){ const q=pos.get(c);
+      const hot=(marks[n.id]==='path'||marks[n.id]==='found')&&(marks[c.id]==='path'||marks[c.id]==='found');
+      edges+=`<line class="edge ${hot?'hot':''}" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/>`; }});
+    nodes+=`<g class="node ${marks[n.id]||''}"><circle cx="${p.x}" cy="${p.y}" r="22"/><text x="${p.x}" y="${p.y+4}">${n.id}</text><text class="nm" x="${p.x}" y="${p.y+38}">${esc(n.data.name.split(' ')[0])}</text></g>`;
+  });
+  return `<svg width="${w}" height="${h+30}" viewBox="0 0 ${w} ${h+30}" role="img" aria-label="Binary search tree">${edges}${nodes}</svg>`;
+}
+function render(){
+  const html=drawTree(); document.querySelectorAll('.treeview').forEach(e=>e.innerHTML=html);
+  const mn=tree.minimum(), mx=tree.maximum();
+  $('sTotal').textContent=tree.size; $('sRoot').textContent=tree.root?tree.root.id:'–';
+  $('sMin').textContent=mn?mn.id:'–'; $('sMax').textContent=mx?mx.id:'–'; $('sHeight').textContent=tree.height();
+  const ids=tree.inorder();
+  $('tbody').innerHTML=ids.length?ids.map(id=>{ const s=tree.search(id).node.data; return `<tr><td><b>${s.id}</b></td><td>${esc(s.name)}</td><td>${s.age}</td><td>${esc(s.course)}</td><td>${esc(s.dept)}</td><td>${esc(s.email)}</td><td>${s.cgpa}</td><td><button class="btn sec sm" data-act="s" data-id="${s.id}">Search</button><button class="btn bad sm" data-act="d" data-id="${s.id}">Delete</button></td></tr>`; }).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--mute);padding:28px">No students yet.</td></tr>';
+}
+const show=(el,html,err)=>{ el.className='out show'+(err?' err':''); el.innerHTML=html; };
+
+/* ---- actions ---- */
+function insertStudent(){
+  const v=k=>$(k).value.trim(), id=Number(v('fId')), age=Number(v('fAge')), cgpa=Number(v('fCgpa'));
+  let e='';
+  if(!v('fId')||!Number.isInteger(id)||id<=0) e='Student ID must be a positive whole number.';
+  else if(!v('fName')) e='Enter the student name.';
+  else if(!(age>=15&&age<=100)) e='Age must be between 15 and 100.';
+  else if(!v('fCourse')) e='Enter the course.';
+  else if(!v('fDept')) e='Enter the department.';
+  else if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('fEmail'))) e='Enter a valid email address.';
+  else if(!v('fCgpa')||!(cgpa>=0&&cgpa<=10)) e='CGPA must be between 0 and 10.';
+  const box=$('addErr');
+  if(e){ show(box,e,true); toast(e,'err'); return; }
+  const ok=tree.insert({id,name:v('fName'),age,course:v('fCourse'),dept:v('fDept'),email:v('fEmail'),cgpa});
+  if(!ok){ show(box,'Student ID already exists.',true); toast('Student ID already exists.','err'); return; }
+  box.className='out err'; ['fId','fName','fAge','fCourse','fDept','fEmail','fCgpa'].forEach(k=>$(k).value='');
+  marks={[id]:'new'}; render(); toast(`Inserted student ${id}.`);
+  later(()=>{ if(marks[id]==='new'){ delete marks[id]; render(); } },4000);
+}
+function searchStudent(id){
+  clearTimers(); marks={}; render();
+  const out=$('sOut');
+  if(!Number.isInteger(id)||id<=0){ show(out,'Enter a valid Student ID.',true); return; }
+  const r=tree.search(id), steps=r.path.length;
+  r.path.forEach((p,i)=>later(()=>{ marks[p]=(i===steps-1&&r.node)?'found':'path'; render(); },i*600));
+  later(()=>{
+    const route=`<div class="path">${r.path.join(' → ')||'(tree is empty)'}</div>`;
+    if(r.node){ const s=r.node.data;
+      show(out,`✅ <b>Student found.</b> Comparisons: <b>${r.steps}</b>${route}<div class="info"><b>${esc(s.name)}</b> · Age ${s.age} · ${esc(s.course)}, ${esc(s.dept)}<br>${esc(s.email)} · CGPA ${s.cgpa}</div>`); toast(`Found student ${id}.`); }
+    else { show(out,`❌ <b>Student ${id} not found.</b> Comparisons: <b>${r.steps}</b>${route}`,true); toast(`Student ${id} not found.`,'warn'); }
+  },Math.max(steps,1)*600);
+}
+function deleteStudent(id){
+  clearTimers(); const out=$('dOut');
+  if(!Number.isInteger(id)||id<=0){ show(out,'Enter a valid Student ID.',true); return; }
+  const r=tree.search(id);
+  if(!r.node){ show(out,`Student ${id} does not exist.`,true); toast(`Student ${id} does not exist.`,'err'); return; }
+  marks={}; r.path.forEach(p=>marks[p]='path'); marks[id]='del'; render();   // show deleted node and path
+  later(()=>{
+    const res=tree.delete(id); marks={}; render();
+    show(out,`✅ Deleted student <b>${id}</b> (${res.type}).`); toast(`Deleted student ${id}.`);
+  },900);
+}
+function traverse(kind){
+  const names={inorder:'Inorder',preorder:'Preorder',postorder:'Postorder',levelOrder:'Level Order'};
+  const r=tree[kind]();
+  show($('tOut'),`<b>${names[kind]} Traversal:</b><div class="path">${r.length?r.join(' → '):'(tree is empty)'}</div>`);
+}
+function goto(t){
+  document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('on',e.id===t));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+}
+
+/* ---- wiring ---- */
+$('nav').onclick=e=>{ const b=e.target.closest('button'); if(b){ clearTimers(); marks={}; render(); goto(b.dataset.t); } };
+$('bInsert').onclick=insertStudent;
+$('bSearch').onclick=()=>searchStudent(Number($('sId').value));
+$('bDelete').onclick=()=>deleteStudent(Number($('dId').value));
+$('sId').onkeydown=e=>e.key==='Enter'&&$('bSearch').click();
+$('dId').onkeydown=e=>e.key==='Enter'&&$('bDelete').click();
+$('bSample').onclick=()=>{ SAMPLE.forEach(s=>tree.insert({...s})); render(); toast('Sample data added (existing IDs skipped).'); };
+$('bReset').onclick=()=>{ loadSample(); toast('Tree reset to sample data.'); };
+$('bClear').onclick=()=>{ tree=new BST(); marks={}; render(); toast('All students cleared.','warn'); };
+document.querySelectorAll('[data-trav]').forEach(b=>b.onclick=()=>traverse(b.dataset.trav));
+$('tbody').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; const id=Number(b.dataset.id);
+  if(b.dataset.act==='s'){ goto('search'); $('sId').value=id; searchStudent(id); }
+  else { goto('del'); $('dId').value=id; deleteStudent(id); } };
+$('theme').onclick=()=>{ const r=document.documentElement, dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches; r.dataset.theme=dark?'light':'dark'; };
+
+loadSample();
+</script>
+</body>
+</html>
